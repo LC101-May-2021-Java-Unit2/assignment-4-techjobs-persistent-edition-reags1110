@@ -6,7 +6,6 @@ import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.Optional;
 
 @Controller
@@ -21,8 +20,8 @@ public class EmployerController {
     }
 
     @PostMapping("add")
-    public String processAddEmployerForm(@ModelAttribute @Valid Employer newEmployer,
-                                    Errors errors, Model model) {
+    public String processAddEmployerForm(@ModelAttribute Employer newEmployer,
+                                         Errors errors, Model model) {
 
         if (errors.hasErrors()) {
             return "employers/add";
