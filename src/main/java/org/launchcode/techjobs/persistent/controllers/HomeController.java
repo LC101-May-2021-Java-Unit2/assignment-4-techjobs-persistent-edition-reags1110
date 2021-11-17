@@ -1,5 +1,6 @@
 package org.launchcode.techjobs.persistent.controllers;
 
+import org.launchcode.techjobs.persistent.models.Employer;
 import org.launchcode.techjobs.persistent.models.Job;
 import org.launchcode.techjobs.persistent.models.Skill;
 import org.launchcode.techjobs.persistent.models.data.EmployerRepository;
@@ -13,35 +14,46 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Created by LaunchCode
  */
 @Controller
 public class HomeController {
-    @Autowired
-    EmployerRepository employerRepository;
 
     @Autowired
-    SkillRepository skillRepository;
+    private EmployerRepository employerRepository;
 
     @Autowired
-    JobRepository jobRepository;
+    private SkillRepository skillRepository;
+
+    @Autowired
+    private JobRepository jobRepository;
+
 
     @RequestMapping("")
     public String index(Model model) {
 
         model.addAttribute("title", "My Jobs");
-        model.addAttribute("jobs", jobRepository.findAll());
+
+        List jobs = (List<Job>) jobRepository.findAll();
+        model.addAttribute("jobs", jobs );
+
         return "index";
     }
 
     @GetMapping("add")
     public String displayAddJobForm(Model model) {
         model.addAttribute("title", "Add Job");
-        model.addAttribute("employers", employerRepository.findAll());
-        model.addAttribute("skills", skillRepository.findAll());
         model.addAttribute(new Job());
+
+        List employers = (List<Employer>) employerRepository.findAll();
+        model.addAttribute("employers", employers);
+
+        List skills = (List<Skill>) skillRepository.findAll();
+        model.addAttribute("skills", skills);
+
         return "add";
     }
 
@@ -51,22 +63,42 @@ public class HomeController {
 
         if (errors.hasErrors()) {
             model.addAttribute("title", "Add Job");
+            List employers = (List<Employer>) employerRepository.findAll();
+            model.addAttribute("employers", employers);
+
+
             return "add";
         }
-        model.addAttribute("employers", employerRepository.findById(employerId));
-        model.addAttribute("skills", skillRepository.findAll());
-        model.addAttribute("jobs", jobRepository.findAll());
+
+        Optional<Employer> optEmployer = employerRepository.findById(employerId);
+        if (optEmployer.isPresent()) {
+            Employer employer = optEmployer.get();
+            newJob.setEmployer(employer);
+
+        }
+
         List<Skill> skillObjs = (List<Skill>) skillRepository.findAllById(skills);
         newJob.setSkills(skillObjs);
+
         jobRepository.save(newJob);
 
-        return "redirect:";
+
+        return "redirect:./";
     }
+
 
     @GetMapping("view/{jobId}")
     public String displayViewJob(Model model, @PathVariable int jobId) {
+        Optional<Job> optJob = jobRepository.findById(jobId);
+        if(optJob.isPresent()) {
+            Job job = (Job) optJob.get();
+            model.addAttribute("job", job);
+            return "view";
+        }
+        else {
+            return "redirect:./";
+        }
 
-        return "view";
     }
 
 
